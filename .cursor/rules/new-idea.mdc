@@ -1,0 +1,14 @@
+---
+description: 论文创新点
+globs: * .py
+alwaysApply: false
+---
+根据以下内容对该项目进行修改。
+1、修改后的项目结构如“项目结构图.md”文件所示
+2、在项目中添加，使用数据并用dp-transformer库对模型进行微调，模型可以指定来自huggingface上的模型
+3、改进的去噪过滤算法如“改进的去噪过滤算法.md”所示
+4、在实验中新增使用MAUVE评分衡量指令之间的差异
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
