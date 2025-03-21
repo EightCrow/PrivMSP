@@ -19,7 +19,7 @@ from components.augmenter import TextInfiller, Paraphraser, EasyDataAugmenter, R
 from components.ct_generator import ControlledTextGenerator, SoftPromptMixer
 from components.ct_generator import ConditionalLM, DExpertGenerator, CVAEGenerator
 from components.additional import make_prompts
-from components.denoise import assign_noise_scores, parameterized_dp_filter, visualize_distributions, visualize_attribute_distribution
+from components.denoise import assign_noise_scores, parameterized_filter, visualize_distributions, visualize_attribute_distribution
 from utils.process import get_dataloader
 from assets.static_vars import ATTRIBUTE_TOKEN_LEN, device, dtype, debug_break, accelerator
 
@@ -266,7 +266,7 @@ def filter_generated_data(args, new_data, synthetic_data, seed_data):
   """
   if args.advanced_filter:
     # 使用改进的参数化差分隐私去噪过滤算法
-    filtered_data, distribution_info = parameterized_dp_filter(args, synthetic_data, seed_data)
+    filtered_data, distribution_info = parameterized_filter(args, synthetic_data, seed_data)
     
     # 可视化分布
     if args.visualize_distribution:

@@ -3,8 +3,8 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM
 from peft import get_peft_model, LoraConfig, TaskType
-from dp_transformers import DPTrainer, DPTrainingArguments
-from transformers import TrainingArguments
+from dp_transformers import  TrainingArguments, PrivacyArguments
+from dp_transformers.dp_utils import OpacusDPTrainer
 import math
 
 class PrivacyTuner:
@@ -75,19 +75,11 @@ class PrivacyTuner:
         返回:
         - model: 微调后的模型
         """
-        # 计算差分隐私参数
-        target_epsilon = self.args.target_epsilon
-        sampling_probability = self.args.batch_size / len(train_dataset)
-        
         # 创建训练参数
-        training_args = DPTrainingArguments(
+        training_args = TrainingArguments(
             output_dir=self.args.output_dir,
             num_train_epochs=self.args.privacy_epochs,
             per_device_train_batch_size=self.args.batch_size,
-            target_epsilon=target_epsilon,
-            target_delta=self.args.target_delta,
-            noise_multiplier=self.args.noise_multiplier,
-            max_grad_norm=self.args.max_grad_norm,
             gradient_accumulation_steps=1,
             learning_rate=2e-4,
             fp16=True,
@@ -98,10 +90,21 @@ class PrivacyTuner:
             push_to_hub=False,
         )
 
+        # 创建隐私参数
+        privacy_args = PrivacyArguments(
+            target_epsilon=self.args.target_epsilon,
+            target_delta=self.args.target_delta,
+            noise_multiplier=self.args.noise_multiplier,
+            max_grad_norm=self.args.max_grad_norm,
+            per_sample_max_grad_norm=self.args.max_grad_norm,  # 通常与max_grad_norm相同
+            secure_mode=True  # 启用安全模式
+        )
+
         # 创建 DP Trainer
-        trainer = DPTrainer(
+        trainer = OpacusDPTrainer(
             model=model,
             args=training_args,
+            privacy_args=privacy_args,  # 添加隐私参数
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             tokenizer=self.tokenizer,
@@ -113,7 +116,7 @@ class PrivacyTuner:
         train_result = trainer.train()
         
         # 打印训练结果和隐私预算
-        print(f"Training completed. Final privacy budget: ε = {trainer.get_epsilon():.2f}")
+        print(f"Training completed. Final privacy budget: ε = {trainer.get_prv_epsilon():.2f}")  # 使用get_prv_epsilon替代get_epsilon
         
         return model
 
@@ -138,7 +141,7 @@ class PrivacyTuner:
             'max_grad_norm': self.args.max_grad_norm,
             'target_epsilon': self.args.target_epsilon,
             'target_delta': self.args.target_delta,
-            'final_epsilon': self.trainer.get_epsilon() if self.trainer else None
+            'final_epsilon': self.trainer.get_prv_epsilon() if self.trainer else None  # 使用get_prv_epsilon
         }
         
         torch.save(privacy_params, os.path.join(save_path, 'privacy_params.pt'))
