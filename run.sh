@@ -183,10 +183,11 @@ python main.py --dataset actdial --task fine_tune --do-train --debug --source-ma
 # 使用dp-transformer进行隐私微调
 echo "使用dp-transformer进行隐私微调"
 python main.py --dataset nlu++ --task privacy_tune --do-train --domain hotels \
-      --model godel --size medium --source-max-len 128 --log-interval 100 \
-      --privacy_tune --privacy_epochs 3 --noise_multiplier 1.0 --max_grad_norm 1.0 \
-      --target_epsilon 8.0 --target_delta 1e-5 --accounting_mode rdp \
-      --privacy_model_save_dir models/privacy_tuned --verbose
+  --model gpt --size medium --source-max-len 128 --log-interval 100 \
+  --privacy_tune --privacy_epochs 3 --target_epsilon 8.0 \
+  --max_grad_norm 1.0 --target_delta 1e-5 --accounting_mode rdp \
+  --privacy_model_save_dir models/privacy_tuned \
+  --verbose --quantify --batch-size 64
 
 # 使用隐私微调后的模型生成数据
 echo "使用隐私微调后的模型生成数据"

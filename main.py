@@ -3,6 +3,7 @@ import numpy as np
 import random
 from tqdm import tqdm as progress_bar
 import openai
+from peft import get_peft_model, LoraConfig, TaskType
 
 from torch import nn, no_grad
 from torch.cuda.amp import autocast, GradScaler
